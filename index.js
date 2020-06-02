@@ -1,11 +1,13 @@
 "use strict";
-const express = require("express");  
+const express = require("express");
+const cors = require("cors");  
 const fetch = require("node-fetch");
 const redis = require("redis");
 const { URL, URLSearchParams } = require('url');
 const PORT = process.env.PORT || 4000;
 const PORT_REDIS = process.env.PORT || 6379;
 const app = express();
+app.use(cors());
 const redisClient = redis.createClient(PORT_REDIS);
 const API = 'https://pokeapi.co/api';
 const set = (key, value) => {
@@ -43,6 +45,33 @@ app.get("/pokemon/:id", get, (req, res) => {
     });
 });
 
+app.get("/species/:id", get, (req, res) => {
+  var id = req.param("id");
+  fetch(API+"/v2/pokemon-species/"+id)
+    .then(res => res.json())
+    .then(json => {
+    	set(req.route.path, json);
+    	res.status(200).send(json);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(400).send(error);
+    });
+});
+
+app.get("/evolution-chain/:id", get, (req, res) => {
+  var id = req.param("id");
+  fetch(API+"/v2/evolution-chain/"+id)
+    .then(res => res.json())
+    .then(json => {
+    	set(req.route.path, json);
+    	res.status(200).send(json);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(400).send(error);
+    });
+});
 
 app.get("/pokemon/", get, (req, res) => {
     
